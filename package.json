@@ -1,5 +1,5 @@
 {
-  "homepage": "https://patrickgking03.github.io/commute-analyzer/",
+  "homepage": "https://patrickking67.github.io/commute-analyzer/",
   "name": "commute-analyzer",
   "version": "1.0.0",
   "scripts": {
@@ -9,10 +9,17 @@
     "preview": "vite preview",
     "deploy": "vite build && gh-pages -d dist"
   },
-  "keywords": [],
+  "keywords": ["commute", "travel-time", "react", "vite", "tailwind"],
   "author": "Patrick King",
-  "license": "ISC",
-  "description": "A simple commute analyzer app built with React and Vite.",
+  "license": "MIT",
+  "description": "A React + Vite + Tailwind app that compares commute times across offices and time slots.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/patrickking67/commute-analyzer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/patrickking67/commute-analyzer/issues"
+  },
   "dependencies": {
     "jspdf": "^2.5.2",
     "lucide-react": "^0.469.0",
