@@ -1,39 +1,43 @@
 # commute-analyzer
 
-React + Vite + Tailwind app that compares commute times across offices and time slots, with PDF export.
+React + Vite + Tailwind app that compares commute times across offices and time slots, with PDF export. Client-side only, no backend.
 
-## Build & Run
+## Commands
 
-```bash
-npm install          # install deps (Vite 6, React 18, Tailwind 3, lucide-react, jsPDF)
-npm run dev          # vite dev server at http://localhost:5173
-npm run build        # production build to dist/
-npm run preview      # serve the build for local testing
-npm run deploy       # publish dist/ to GitHub Pages
-```
+| Task | Command | Notes |
+| --- | --- | --- |
+| Install | `npm ci` | |
+| Dev server | `npm run dev` | http://localhost:5173/commute-analyzer (`npm start` is the same) |
+| Build | `npm run build` | Output in `dist/` |
+| Preview build | `npm run preview` | Serves `dist/` locally |
+| Deploy | `npm run deploy` | **Production.** Builds and pushes `dist/` to the `gh-pages` branch, live at https://patrickking67.github.io/commute-analyzer/. Only when PK asks |
 
-## Architecture
+No test, lint or type-check scripts. `npm run build` is the only automated check (Vite does not type-check).
 
-Single-page React app. The main component lives in `main.tsx` (~440 lines) and contains:
+## Layout
 
-- Office presets (DivergeIT, The Agency, PwC, Camacho Commercial, JOEY) with hardcoded coordinates
-- Custom-office text input with address suggestions
-- Time slot grid (7am–6pm) and weekday vs weekend toggle
-- Commute calculation (currently mocked / heuristic-based)
-- Results panel with sortable alternatives and PDF export via jsPDF
+| Path | What it is |
+| --- | --- |
+| `index.html` | Loads `src/main.tsx` |
+| `src/main.tsx` | The live app (about 1,080 lines): office presets with hardcoded coordinates, custom office address input, time slot grid, weekday or weekend toggle, neighborhood results, PDF export |
+| `src/index.css` | Tailwind directives and resets |
+| `main.tsx`, `old.tsx` | Earlier versions at the repo root. Not loaded by `index.html` |
+| `vite.config.ts` | `base` is `commute-analyzer` for GitHub Pages |
 
-`old.tsx` is preserved as a snapshot of an earlier iteration. Safe to delete once superseded permanently.
+## Conventions
 
-## Code Conventions
+- TypeScript, function components with hooks.
+- Tailwind utility classes; no CSS modules beyond `src/index.css`.
+- Icons from `lucide-react`.
+- Adding an office means editing the `offices` list and the `officeCoords` map in `src/main.tsx` together.
 
-- TypeScript throughout. Function components with hooks.
-- Tailwind utility classes only; no separate CSS modules beyond `index.css` for resets.
-- Lucide icons (`Clock`, `Car`, `ArrowUpDown`, `MapPin`, `Loader2`).
-- No backend; all logic is client-side.
-- Office coordinates are hardcoded — adding a new office means editing the `officeCoords` map and `offices` list together.
+## Known limitations
 
-## Known Limitations
+- Commute times come from heuristics and traffic multipliers, not a live routing API.
+- No tests.
+- `npm audit` reports open advisories (20 on 2026-11-03). Upgrades need PK's OK.
 
-- Commute times are not currently fetched from a live routing API; they're driven by heuristics. Wiring a Google Maps Directions or Mapbox call would be the obvious next step.
-- No tests yet.
-- 10 npm audit warnings reported by GitHub (3 high, 7 moderate) as of 2026-05. Run `npm audit` and bump packages when convenient.
+## Verifying a change
+
+1. `npm run build`
+2. `npm run dev` and check the change at `/commute-analyzer` in the browser.
