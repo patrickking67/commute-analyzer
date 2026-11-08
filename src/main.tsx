@@ -3,12 +3,23 @@ import ReactDOM from 'react-dom/client';
 import React, { useState } from 'react';
 import { Loader2, Clock, Car, ArrowUpDown, MapPin } from 'lucide-react';
 import { jsPDF } from "jspdf";
+import { NEIGHBORHOODS } from './data/neighborhoods';
+import { OFFICES } from './data/offices';
+import { commuteCost, estimateCommute } from './lib/commute';
+import { HOURS, formatHour } from './lib/time';
+
+const offices = [...OFFICES.map((o) => o.name), 'Other'];
+const officeByName = new Map(OFFICES.map((o) => [o.name, o]));
+const areaByName = new Map(NEIGHBORHOODS.map((n) => [n.name, n]));
+const neighborhoodStats = Object.fromEntries(
+    NEIGHBORHOODS.map((n) => [n.name, { ...n, zillowLink: n.zillowUrl }]),
+);
+const calculateCommuteCost = (miles: number) => {
+    const cost = commuteCost(miles);
+    return { monthly: cost.monthly.toFixed(2), annual: cost.annual.toFixed(2) };
+};
 
 const CommuteAnalysis = () => {
-    type AlternateRoute = {
-        name: string;
-        diff: number;
-      };
 
     type Suggestion = {
         name: string;
@@ -16,7 +27,7 @@ const CommuteAnalysis = () => {
         lon: string;
     };
 
-    const [selectedTime, setSelectedTime] = useState('8am');
+    const [selectedTime, setSelectedTime] = useState(8);
     const [customName, setCustomName] = useState('');
     const [selectedOffice, setSelectedOffice] = useState('');
     const [customOfficeAddress, setCustomOfficeAddress] = useState('');
@@ -28,384 +39,14 @@ const CommuteAnalysis = () => {
     const [showPDFConfirm, setShowPDFConfirm] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [fadeOut, setFadeOut] = useState(false); // For reset fade effect
-    const GAS_PRICE_PER_GALLON = 5.50;
-    const AVERAGE_MPG = 25;
-    const timeSlots = [
-        '12:00 AM', '1:00 AM', '2:00 AM', '3:00 AM', '4:00 AM', '5:00 AM',
-        '6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM',
-        '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM',
-        '6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM', '10:00 PM', '11:00 PM',
-      ];
-
-      const offices = [
-        'Activision Blizzard',
-        'Amazon Studios',
-        'Apple',
-        'Bank of America',
-        'BCG',
-        'Beyond Meat',
-        'BlackRock',
-        'Blizzard Entertainment',
-        'Bloomberg',
-        'Buzzfeed',
-        'Capital Group',
-        'CBRE Group',
-        'CBS',
-        'Creative Artists Agency',
-        'Deloitte',
-        'Disney',
-        'DoorDash',
-        'Epson',
-        'EY',
-        'Farmers Insurance',
-        'Fox Corporation',
-        'Goldman Sachs',
-        'Google',
-        'Goop',
-        'HBO',
-        'Honey',
-        'Hulu',
-        'ICM Partners',
-        'Impossible Foods',
-        'JPMorgan Chase',
-        'KPMG',
-        'LegalZoom',
-        'Live Nation',
-        'Los Angeles Times',
-        'Lyft',
-        'McKinsey & Company',
-        'Meta',
-        'Morgan Stanley',
-        'NBC Universal',
-        'Netflix',
-        'Nike',
-        'Oracle',
-        'Paramount Pictures',
-        'PayPal',
-        'Peacock',
-        'PwC',
-        'Qualcomm',
-        'Riot Games',
-        'Robinhood',
-        'Rolling Stone',
-        'ServiceTitan',
-        'Snap Inc',
-        'Sony Pictures',
-        'SpaceX',
-        'Spotify',
-        'Square',
-        'Stripe',
-        'TechStyle Fashion Group',
-        'Tesla',
-        'TikTok',
-        'Twitter',
-        'Uber',
-        'United Talent Agency',
-        'Universal Music Group',
-        'Universal Studios',
-        'Warner Bros',
-        'Warner Music Group',
-        'Wells Fargo',
-        'William Morris Endeavor',
-        'Yahoo',
-        'YouTube',
-        'ZipRecruiter',
-        'Other',
-    ];
     
-    const officeCoords = {
-        'Activision Blizzard': [34.0167, -118.4412],
-        'Amazon Studios': [34.0186, -118.3965],
-        'Apple': [34.1577, -118.3331],
-        'Bank of America': [34.0505, -118.2545],
-        'BCG': [34.0496, -118.2540],
-        'Beyond Meat': [34.0183, -118.4944],
-        'BlackRock': [34.0515, -118.2545],
-        'Blizzard Entertainment': [33.9333, -118.2834],
-        'Bloomberg': [34.0511, -118.2547],
-        'Buzzfeed': [34.0183, -118.4944],
-        'Capital Group': [34.0486, -118.2540],
-        'CBRE Group': [34.0508, -118.2565],
-        'CBS': [34.0867, -118.3214],
-        'Creative Artists Agency': [34.0673, -118.3760],
-        'Deloitte': [34.0484, -118.2571],
-        'Disney': [34.1558, -118.3239],
-        'DoorDash': [34.0183, -118.4944],
-        'Epson': [33.8316, -118.3519],
-        'EY': [34.0522, -118.2537],
-        'Farmers Insurance': [34.0520, -118.2591],
-        'Fox Corporation': [34.0258, -118.4554],
-        'Goldman Sachs': [34.0511, -118.2547],
-        'Google': [33.9757, -118.4199],
-        'Goop': [34.0258, -118.4654],
-        'HBO': [34.0183, -118.3944],
-        'Honey': [34.0447, -118.2587],
-        'Hulu': [34.0183, -118.3672],
-        'ICM Partners': [34.0674, -118.3748],
-        'Impossible Foods': [34.0183, -118.4944],
-        'JPMorgan Chase': [34.0520, -118.2541],
-        'KPMG': [34.0516, -118.2547],
-        'LegalZoom': [34.0169, -118.4951],
-        'Live Nation': [34.0905, -118.3768],
-        'Los Angeles Times': [34.0522, -118.2437],
-        'Lyft': [34.0183, -118.4944],
-        'McKinsey & Company': [34.0505, -118.2545],
-        'Meta': [33.9767, -118.4229],
-        'Morgan Stanley': [34.0508, -118.2546],
-        'NBC Universal': [34.1383, -118.3528],
-        'Netflix': [34.0827, -118.3265],
-        'Nike': [34.0183, -118.4944],
-        'Oracle': [34.0522, -118.2437],
-        'Paramount Pictures': [34.0854, -118.3213],
-        'PayPal': [34.0183, -118.4944],
-        'Peacock': [34.1383, -118.3528],
-        'PwC': [34.0505, -118.2545],
-        'Qualcomm': [34.0183, -118.4944],
-        'Riot Games': [34.0267, -118.4011],
-        'Robinhood': [34.0183, -118.4944],
-        'Rolling Stone': [34.0183, -118.4944],
-        'ServiceTitan': [34.1475, -118.2572],
-        'Snap Inc': [33.9959, -118.4777],
-        'Sony Pictures': [34.0175, -118.4017],
-        'SpaceX': [33.9207, -118.3278],
-        'Spotify': [34.0183, -118.4944],
-        'Square': [34.0183, -118.4944],
-        'Stripe': [34.0183, -118.4944],
-        'TechStyle Fashion Group': [34.0183, -118.4944],
-        'Tesla': [33.9207, -118.3278],
-        'TikTok': [34.0819, -118.3267],
-        'Twitter': [34.0183, -118.4944],
-        'Uber': [34.0183, -118.4944],
-        'United Talent Agency': [34.0613, -118.3978],
-        'Universal Music Group': [34.0183, -118.3672],
-        'Universal Studios': [34.1381, -118.3534],
-        'Warner Bros': [34.1522, -118.3370],
-        'Warner Music Group': [34.0697, -118.4034],
-        'Wells Fargo': [34.0516, -118.2543],
-        'William Morris Endeavor': [34.0671, -118.3773],
-        'Yahoo': [34.0183, -118.4944],
-        'YouTube': [33.9757, -118.4199],
-        'ZipRecruiter': [34.0183, -118.4944],
-    };
-    
-    const officeAddresses = {
-        'Activision Blizzard': '2701 Olympic Blvd, Santa Monica, CA 90404',
-        'Amazon Studios': '9336 W Washington Blvd, Culver City, CA 90232',
-        'Apple': '8600 Hayden Place, Culver City, CA 90232',
-        'Bank of America': '333 S Hope St, Los Angeles, CA 90071',
-        'BCG': '515 S Flower St, Los Angeles, CA 90071',
-        'Beyond Meat': '119 Standard St, El Segundo, CA 90245',
-        'BlackRock': '400 Howard St, San Francisco, CA 94105',
-        'Blizzard Entertainment': '3100 Ocean Park Blvd, Santa Monica, CA 90405',
-        'Bloomberg': '2029 Century Park E, Los Angeles, CA 90067',
-        'Buzzfeed': '6430 Sunset Blvd, Los Angeles, CA 90028',
-        'Capital Group': '333 S Hope St, Los Angeles, CA 90071',
-        'CBRE Group': '400 S Hope St #500, Los Angeles, CA 90071',
-        'CBS': '7800 Beverly Blvd, Los Angeles, CA 90036',
-        'Creative Artists Agency': '2000 Avenue of the Stars, Los Angeles, CA 90067',
-        'Deloitte': '555 W 5th St, Los Angeles, CA 90013',
-        'Disney': '500 S Buena Vista St, Burbank, CA 91521',
-        'DoorDash': '8687 Melrose Ave, West Hollywood, CA 90069',
-        'Epson': '3131 Katella Ave, Los Alamitos, CA 90720',
-        'EY': '725 S Figueroa St, Los Angeles, CA 90017',
-        'Farmers Insurance': '6301 Owensmouth Ave, Woodland Hills, CA 91367',
-        'Fox Corporation': '10201 W Pico Blvd, Los Angeles, CA 90064',
-        'Goldman Sachs': '2121 Avenue of the Stars, Los Angeles, CA 90067',
-        'Google': '340 Main St, Los Angeles, CA 90291',
-        'Goop': '3025 Olympic Blvd, Santa Monica, CA 90404',
-        'HBO': '2900 W Alameda Ave, Burbank, CA 91505',
-        'Honey': '963 E 4th St, Los Angeles, CA 90013',
-        'Hulu': '2500 Broadway, Santa Monica, CA 90404',
-        'ICM Partners': '10250 Constellation Blvd, Los Angeles, CA 90067',
-        'Impossible Foods': '1715 Berkeley St, Santa Monica, CA 90404',
-        'JPMorgan Chase': '550 S Hope St, Los Angeles, CA 90071',
-        'KPMG': '550 S Hope St #1500, Los Angeles, CA 90071',
-        'LegalZoom': '101 N Brand Blvd, Glendale, CA 91203',
-        'Live Nation': '9348 Civic Center Dr, Beverly Hills, CA 90210',
-        'Los Angeles Times': '2300 E Imperial Hwy, El Segundo, CA 90245',
-        'Lyft': '6100 Center Dr, Los Angeles, CA 90045',
-        'McKinsey & Company': '400 S Hope St, Los Angeles, CA 90071',
-        'Meta': '12777 W Jefferson Blvd, Los Angeles, CA 90066',
-        'Morgan Stanley': '2000 Avenue of the Stars, Los Angeles, CA 90067',
-        'NBC Universal': '100 Universal City Plaza, Universal City, CA 91608',
-        'Netflix': '5808 Sunset Blvd, Los Angeles, CA 90028',
-        'Nike': '429 Santa Monica Blvd, Santa Monica, CA 90401',
-        'Oracle': '200 N Sepulveda Blvd, El Segundo, CA 90245',
-        'Paramount Pictures': '5555 Melrose Ave, Los Angeles, CA 90038',
-        'PayPal': '2211 North First Street, San Jose, CA 95131',
-        'Peacock': '100 Universal City Plaza, Universal City, CA 91608',
-        'PwC': '601 S Figueroa St, Los Angeles, CA 90017',
-        'Qualcomm': '5775 Morehouse Dr, San Diego, CA 92121',
-        'Riot Games': '12333 W Olympic Blvd, Los Angeles, CA 90064',
-        'Robinhood': '3200 Ash St, Palo Alto, CA 94306',
-        'Rolling Stone': '475 Fifth Ave, New York, NY 10017',
-        'ServiceTitan': '800 N Brand Blvd, Glendale, CA 91203',
-        'Snap Inc': '2772 Donald Douglas Loop N, Santa Monica, CA 90405',
-        'Sony Pictures': '10202 W Washington Blvd, Culver City, CA 90232',
-        'SpaceX': '1 Rocket Rd, Hawthorne, CA 90250',
-        'Spotify': '4 World Trade Center, New York, NY 10007',
-        'Square': '1455 Market St, San Francisco, CA 94103',
-        'Stripe': '185 Berry St, San Francisco, CA 94107',
-        'TechStyle Fashion Group': '2301 Rosecrans Ave, El Segundo, CA 90245',
-        'Tesla': '3500 Deer Creek Rd, Palo Alto, CA 94304',
-        'TikTok': '5800 Bristol Parkway, Culver City, CA 90230',
-        'Twitter': '1355 Market St, San Francisco, CA 94103',
-        'Uber': '1455 Market St, San Francisco, CA 94103',
-        'United Talent Agency': '9336 Civic Center Drive, Beverly Hills, CA 90210',
-        'Universal Music Group': '2220 Colorado Ave, Santa Monica, CA 90404',
-        'Universal Studios': '100 Universal City Plaza, Universal City, CA 91608',
-        'Warner Bros': '4000 Warner Blvd, Burbank, CA 91522',
-        'Warner Music Group': '777 S Santa Fe Ave, Los Angeles, CA 90021',
-        'Wells Fargo': '333 S Grand Ave, Los Angeles, CA 90071',
-        'William Morris Endeavor': '9601 Wilshire Blvd, Beverly Hills, CA 90210',
-        'Yahoo': '770 Broadway, New York, NY 10003',
-        'YouTube': '12422 W Bluff Creek Dr, Los Angeles, CA 90094',
-        'ZipRecruiter': '604 Arizona Ave, Santa Monica, CA 90401'
-    };
-    
+          
+        
+        
     
 
-    const livingAreas = {
-        "Venice": [33.9850, -118.4695],
-        "Santa Monica": [34.0195, -118.4912],
-        "Playa Del Rey": [33.9537, -118.4489],
-        "West Hollywood": [34.0900, -118.3617],
-        "Brentwood": [34.0520, -118.4669],
-        "Beverly Hills": [34.0736, -118.4004],
-        "El Segundo": [33.9192, -118.4164],
-        "Manhattan Beach": [33.8847, -118.4109],
-        "Mar Vista": [34.0037, -118.4289],
-        "Culver City": [34.0211, -118.3965],
-        "Newport Beach": [33.6189, -117.9289],
-        "Corona Del Mar": [33.6000, -117.8721],
-        "Huntington Beach": [33.6595, -118.0010],
-        "Torrance": [33.8358, -118.3406],
-        "Palos Verdes": [33.7445, -118.3870]
-    };
-
-    const neighborhoodStats = {
-        "Venice": {
-          rent: "$$$",
-          safety: "B+",
-          amenities: ["Beach", "Restaurants", "Shopping", "Bars"],
-          walkability: "A",
-          nightlife: "A-",
-          zillowLink: "https://www.zillow.com/venice-ca/"
-        },
-        "Santa Monica": {
-          rent: "$$$$",
-          safety: "A",
-          amenities: ["Parks", "Shopping", "Restaurants", "Clubs"],
-          walkability: "A+",
-          nightlife: "A",
-          zillowLink: "https://www.zillow.com/santa-monica-ca/"
-        },
-        "Playa Del Rey": {
-          rent: "$$",
-          safety: "B",
-          amenities: ["Parks", "Beach", "Restaurants"],
-          walkability: "B+",
-          nightlife: "B",
-          zillowLink: "https://www.zillow.com/playa-del-rey-ca/"
-        },
-        "West Hollywood": {
-          rent: "$$$",
-          safety: "B+",
-          amenities: ["Bars", "Shopping", "Clubs"],
-          walkability: "A",
-          nightlife: "A+",
-          zillowLink: "https://www.zillow.com/west-hollywood-ca/"
-        },
-        "El Segundo": {
-          rent: "$$$",
-          safety: "A-",
-          amenities: ["Parks", "Restaurants", "Shops"],
-          walkability: "B+",
-          nightlife: "B+",
-          zillowLink: "https://www.zillow.com/el-segundo-ca/"
-        },
-        "Mar Vista": {
-          rent: "$$",
-          safety: "B",
-          amenities: ["Parks", "Restaurants", "Shops"],
-          walkability: "B+",
-          nightlife: "B",
-          zillowLink: "https://www.zillow.com/mar-vista-los-angeles-ca/"
-        },
-        "Manhattan Beach": {
-          rent: "$$$$",
-          safety: "A",
-          amenities: ["Beach", "Restaurants", "Shopping", "Parks"],
-          walkability: "A",
-          nightlife: "A",
-          zillowLink: "https://www.zillow.com/manhattan-beach-ca/"
-        },
-        "Brentwood": {
-          rent: "$$$$",
-          safety: "A",
-          amenities: ["Parks", "Restaurants", "Shopping"],
-          walkability: "A-",
-          nightlife: "B+",
-          zillowLink: "https://www.zillow.com/brentwood-los-angeles-ca/"
-        },
-        "Beverly Hills": {
-          rent: "$$$$",
-          safety: "A+",
-          amenities: ["Shopping", "Restaurants", "Clubs", "Bars"],
-          walkability: "A",
-          nightlife: "A",
-          zillowLink: "https://www.zillow.com/beverly-hills-ca/"
-        },
-        "Culver City": {
-          rent: "$$$",
-          safety: "A-",
-          amenities: ["Restaurants", "Parks", "Bars", "Shops"],
-          walkability: "A-",
-          nightlife: "B+",
-          zillowLink: "https://www.zillow.com/culver-city-ca/"
-        },
-        "Newport Beach": {
-          rent: "$$$$",
-          safety: "A+",
-          amenities: ["Beach", "Restaurants", "Shopping", "Boating", "Parks"],
-          walkability: "B+",
-          nightlife: "A-",
-          zillowLink: "https://www.zillow.com/newport-beach-ca/"
-      },
-      "Corona Del Mar": {
-          rent: "$$$$",
-          safety: "A+",
-          amenities: ["Beach", "Luxury Shopping", "Restaurants", "Parks"],
-          walkability: "A-",
-          nightlife: "B+",
-          zillowLink: "https://www.zillow.com/corona-del-mar-newport-beach-ca/"
-      },
-      "Huntington Beach": {
-          rent: "$$$",
-          safety: "A-",
-          amenities: ["Beach", "Surfing", "Shopping", "Restaurants", "Parks"],
-          walkability: "B+",
-          nightlife: "A-",
-          zillowLink: "https://www.zillow.com/huntington-beach-ca/"
-      },
-      "Torrance": {
-          rent: "$$$",
-          safety: "A-",
-          amenities: ["Shopping", "Restaurants", "Parks", "Beach Access"],
-          walkability: "B",
-          nightlife: "B",
-          zillowLink: "https://www.zillow.com/torrance-ca/"
-      },
-      "Palos Verdes": {
-          rent: "$$$$",
-          safety: "A+",
-          amenities: ["Hiking", "Ocean Views", "Golf", "Parks", "Nature Preserves"],
-          walkability: "C+",
-          nightlife: "C",
-          zillowLink: "https://www.zillow.com/palos-verdes-estates-ca/"
-      }
-      };
-      
+    
+          
       // Render neighborhood stats (to be added at the top of the file with utility functions)
       const renderStats = (area) => {
         const stats = neighborhoodStats[area];
@@ -430,34 +71,9 @@ const CommuteAnalysis = () => {
         );
       };
 
-    // Traffic multipliers for different times
-    const peakMultipliers = {
-        '7am': 1.4,
-        '8am': 1.8,
-        '9am': 1.6,
-        '10am': 1.3,
-        '11am': 1.2,
-        '12pm': 1.2,
-        '1pm': 1.1,
-        '2pm': 1.2,
-        '3pm': 1.3,
-        '4pm': 1.6,
-        '5pm': 1.8,
-        '6pm': 1.7
-    };
-
     
-    const calculateCommuteCost = (distance) => {
-        const roundTripDistance = distance * 2; // Round trip
-        const monthlyMiles = roundTripDistance * 20; // Assuming 20 workdays
-        const annualMiles = monthlyMiles * 12;
-      
-        const monthlyCost = ((monthlyMiles / AVERAGE_MPG) * GAS_PRICE_PER_GALLON).toFixed(2);
-        const annualCost = ((annualMiles / AVERAGE_MPG) * GAS_PRICE_PER_GALLON).toFixed(2);
-      
-        return { monthly: monthlyCost, annual: annualCost };
-      };
-
+    
+    
       const fetchSuggestions = async (query: string) => {
         if (query.length < 3) return;
     
@@ -482,6 +98,14 @@ const CommuteAnalysis = () => {
         } catch (error) {
             console.error('Error fetching suggestions:', error);
         }
+    };
+
+    const calculateCommuteTime = (area: string) => {
+        const office = officeByName.get(selectedOffice);
+        const from = areaByName.get(area);
+        if (!office || !from) return { time: 0, distance: 0 };
+        const estimate = estimateCommute(from, office, selectedTime, selectedDay === 'weekend' ? 'weekend' : 'weekday');
+        return { time: estimate.minutes, distance: estimate.miles };
     };
 
     const getCommuteColor = (minutes) => {
@@ -525,27 +149,16 @@ const CommuteAnalysis = () => {
         text: 'text-red-700',
         border: 'border-red-200',
         hover: 'hover:bg-red-100',
-        label: 'Consider Remote Work! 😅'
+        label: 'Over an hour'
         };
     };
 
-    const calculateDistance = (lat1, lon1, lat2, lon2) => {
-        const R = 3959; // Earth's radius in miles
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
-    };
-
+    
     const handleReset = () => {
         setFadeOut(true); // Start fade-out animation
         setTimeout(() => {
           setShowResults(false); // Hide results
-          setSelectedTime('8am'); // Reset time to default
+          setSelectedTime(8); // Reset time to default
           setCustomName('');
           setSelectedOffice('');
           setCustomOfficeAddress('');
@@ -555,69 +168,8 @@ const CommuteAnalysis = () => {
         }, 1000); // Wait for fade-out animation to complete
       };
 
-    const generateAlternateRoutes = (area: string, mainRoute: { time: number; distance: number }): AlternateRoute[] => {
-        const routes: AlternateRoute[] = [];
-        
-        // Freeway route
-        if (mainRoute.distance > 8) {
-        const freewayDiff = Math.round((Math.random() * 10) - 5); // -5 to +5 minutes
-        routes.push({
-            name: 'Freeway',
-            diff: freewayDiff,
-        });
-        }
     
-        // Surface streets
-        if (mainRoute.distance < 15) {
-        const streetsDiff = Math.round(mainRoute.time * 0.2); // Usually slower
-        routes.push({
-            name: 'Surface Streets',
-            diff: streetsDiff,
-        });
-        }
     
-        // Scenic route
-        if (mainRoute.distance > 5) {
-        const scenicDiff = Math.round(mainRoute.time * 0.3); // Usually slower
-        routes.push({
-            name: 'Scenic Route',
-            diff: scenicDiff,
-        });
-        }
-    
-        return routes;
-    };
-
-    const calculateCommuteTime = (area) => {
-        if (!selectedOffice || !officeCoords[selectedOffice]) return { time: 0, distance: 0 };
-    
-        const distance = calculateDistance(
-            livingAreas[area][0],
-            livingAreas[area][1],
-            officeCoords[selectedOffice][0],
-            officeCoords[selectedOffice][1]
-        );
-    
-        // Base speed logic
-        let baseSpeed = 30; // mph (you can adjust these numbers)
-        if (distance < 5) baseSpeed = 25; // Shorter distance, slower speeds
-        else if (distance < 10) baseSpeed = 30;
-        else if (distance < 20) baseSpeed = 35;
-        else baseSpeed = 40; // Longer distance, faster speeds
-    
-        // Calculate time with traffic multipliers
-        const baseTime = (distance / baseSpeed) * 60; // Convert to minutes
-        const timeMultiplier = peakMultipliers[selectedTime] || 1.2;
-        const dayMultiplier = selectedDay === 'weekday' ? 1 : 0.7;
-    
-        const finalTime = Math.round(baseTime * timeMultiplier * dayMultiplier);
-    
-        return {
-            time: finalTime,
-            distance: Math.round(distance * 10) / 10
-        };
-    };
-
     const handleCalculate = () => {
         setIsCalculating(true);
         setShowResults(false);
@@ -645,7 +197,7 @@ const CommuteAnalysis = () => {
     };
 
     const getSortedAreas = () => {
-        const areas = Object.keys(livingAreas);
+        const areas = NEIGHBORHOODS.map((n) => n.name);
         if (!showResults) return areas;
 
         return areas.sort((a, b) => {
@@ -687,7 +239,7 @@ const CommuteAnalysis = () => {
     
         // Two-column header info
         addText(`Generated: ${dateGenerated}`, 11);
-        addText(`Analysis Time: ${selectedTime}`, 11, black, false, 0, false);
+        addText(`Analysis Time: ${formatHour(selectedTime)}`, 11, black, false, 0, false);
         currentY += 20;
         
         addText(`User: ${customName || 'N/A'}`, 11);
@@ -809,15 +361,7 @@ const CommuteAnalysis = () => {
         doc.save(fileName);
     };
 
-    const handleShare = () => {
-        navigator.clipboard.writeText(
-          `Check out my commute analysis! Key insights: Work Destination: ${
-            selectedOffice || customOfficeAddress
-          }, Time: ${selectedTime}, Day Type: ${selectedDay}`
-        );
-        alert('Analysis shared! Link copied to clipboard.');
-      };
-
+    
 
 
 
@@ -911,11 +455,11 @@ const CommuteAnalysis = () => {
               <label className="block text-sm font-medium mb-2">Departure Time</label>
               <select
                 value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
+                onChange={(e) => setSelectedTime(Number(e.target.value))}
                 className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                {timeSlots.map(time => (
-                  <option key={time} value={time}>{time}</option>
+                {HOURS.map(hour => (
+                  <option key={hour} value={hour}>{formatHour(hour)}</option>
                 ))}
               </select>
             </div>
@@ -960,7 +504,7 @@ const CommuteAnalysis = () => {
                   {customName ? `Hi ${customName}! Here` : 'Here'} are your commute times from each neighborhood to your office!
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 mt-1">
-                  Showing estimated travel times for {selectedDay === 'weekday' ? 'a weekday' : 'the weekend'} at {selectedTime}
+                  Showing estimated travel times for {selectedDay === 'weekday' ? 'a weekday' : 'the weekend'} at {formatHour(selectedTime)}
                 </p>
               </div>
               <div className="flex justify-end mb-4">
@@ -1000,7 +544,7 @@ const CommuteAnalysis = () => {
                       </div>
                       <div className="flex items-center text-sm text-gray-600 mt-1">
                         <Clock className="w-4 h-4 mr-1" />
-                        <span>Best before {selectedTime}</span>
+                        <span>Leaving at {formatHour(selectedTime)}</span>
                       </div>
     
                       {/* Add neighborhood stats */}
