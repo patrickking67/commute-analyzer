@@ -1,0 +1,20 @@
+# LA Commute Analyzer
+
+> A client-side web app that ranks 15 Los Angeles and Orange County neighborhoods by estimated drive time to a chosen workplace at a chosen hour, with gas cost, neighborhood ratings and a PDF export. Estimates are a heuristic (straight-line distance, distance-based speed, hourly traffic multiplier), not live traffic. No backend and no API keys.
+
+## App
+
+- [Live app](https://patrickking67.github.io/commute-analyzer/): pick a workplace or search an address, then compare neighborhoods
+
+## Docs
+
+- [README](https://github.com/patrickking67/commute-analyzer/blob/main/README.md): features, quickstart, checks, deploy
+- [AGENTS.md](https://github.com/patrickking67/commute-analyzer/blob/main/AGENTS.md): layout, commands, conventions and definition of done for contributors and agents
+- [CONTRIBUTING.md](https://github.com/patrickking67/commute-analyzer/blob/main/CONTRIBUTING.md): branches, commits and PR checklist
+- [CHANGELOG.md](https://github.com/patrickking67/commute-analyzer/blob/main/CHANGELOG.md): release history
+
+## Code
+
+- [Estimate math](https://github.com/patrickking67/commute-analyzer/blob/main/src/lib/commute.ts): traffic by hour, speed by distance, gas cost, ranking
+- [Address search](https://github.com/patrickking67/commute-analyzer/blob/main/src/lib/geocode.ts): OpenStreetMap Nominatim client with validation
+- [Neighborhood data](https://github.com/patrickking67/commute-analyzer/blob/main/src/data/neighborhoods.ts): coordinates and ratings
