@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: "commute-analyzer",
+  base: "/commute-analyzer/",
   css: {
     postcss: './postcss.config.js',
   },
