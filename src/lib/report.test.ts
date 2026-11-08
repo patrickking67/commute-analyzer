@@ -18,7 +18,7 @@ vi.mock('jspdf', async (importOriginal) => {
       this.save = ((name: string) => {
         captured.saved.push(name);
         return this;
-      }) as typeof this.save;
+      }) as unknown as typeof this.save;
     }
   }
   return { ...real, jsPDF: RecordingPdf };
