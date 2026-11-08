@@ -2,43 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
+@layer components {
+  .field {
+    @apply block w-full rounded-md border border-line bg-white px-3 py-2.5 text-base text-ink;
+    min-height: 44px;
+  }
+
+  .field:focus-visible {
+    @apply border-route;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-semibold text-ink;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-base font-semibold;
+    min-height: 44px;
+  }
+
+  .btn-primary {
+    @apply btn bg-route text-white hover:bg-route-dark disabled:cursor-not-allowed disabled:bg-bar;
+  }
+
+  .btn-quiet {
+    @apply btn border border-line bg-white text-ink hover:border-ink;
+  }
+
+  .sr-only-focusable:not(:focus) {
+    @apply sr-only;
+  }
 }
 
-.animate-fadeIn {
-    animation: fadeIn 0.5s ease-in;
-}
-
-.animate-fadeOut {
-    animation: fadeOut 0.5s ease-out;
-}
-
-.animate-fadeIn {
-    animation: fadeIn 0.6s ease-in-out;
-}
-
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* The bar growth and dialog fade are the only motion; both stop here. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

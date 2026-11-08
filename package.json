@@ -7,9 +7,19 @@
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && gh-pages -d dist"
+    "deploy": "vite build && gh-pages -d dist",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
-  "keywords": ["commute", "travel-time", "react", "vite", "tailwind"],
+  "keywords": [
+    "commute",
+    "travel-time",
+    "react",
+    "vite",
+    "tailwind"
+  ],
   "author": "Patrick King",
   "license": "MIT",
   "description": "A React + Vite + Tailwind app that compares commute times across offices and time slots.",
@@ -27,14 +37,20 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "gh-pages": "^6.2.0",
+    "globals": "^17.14.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
-    "vite": "^6.0.5"
+    "typescript-eslint": "^8.72.1",
+    "vite": "^6.0.5",
+    "vitest": "^3.2.7"
   }
 }
