@@ -16,7 +16,7 @@ npm run deploy       # publish dist/ to GitHub Pages
 
 Single-page React app. The main component lives in `main.tsx` (~440 lines) and contains:
 
-- Office presets (DivergeIT, The Agency, PwC, Camacho Commercial, JOEY) with hardcoded coordinates
+- Office presets with hardcoded coordinates
 - Custom-office text input with address suggestions
 - Time slot grid (7am–6pm) and weekday vs weekend toggle
 - Commute calculation (currently mocked / heuristic-based)
