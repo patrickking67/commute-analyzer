@@ -37,6 +37,16 @@ All notable changes to this project are documented here. The format follows
   handler and address table.
 - Four workplace presets that were not public company offices.
 
+### Security
+
+- jsPDF 2.5.2 to 4.2.1, which drops the vulnerable DOMPurify 2.x and canvg 3.0.10. The PDF
+  export needed no code change.
+- Vitest 3.2.7 to 4.1.12, which drops tinypool and ships a patched `@vitest/mocker`.
+- Build tooling updated within current ranges: vite 6.4.6, rollup, esbuild, postcss and
+  related packages.
+- Still open: one moderate minimatch advisory (GHSA-g3hv-75wg-m249) through ESLint and
+  typescript-eslint. Only minimatch 11 has the fix, and neither tool accepts it yet.
+
 ## [1.0.0] - 2026-05-13
 
 ### Changed
