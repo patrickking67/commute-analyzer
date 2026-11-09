@@ -3,7 +3,11 @@ import { NEIGHBORHOODS } from '../data/neighborhoods';
 import { rankNeighborhoods } from './commute';
 import { downloadReport } from './report';
 
-const captured = vi.hoisted(() => ({ texts: [] as string[], saved: [] as string[] }));
+const captured = vi.hoisted(() => ({
+  texts: [] as string[],
+  saved: [] as string[],
+  pdf: '' as string,
+}));
 
 vi.mock('jspdf', async (importOriginal) => {
   const real = await importOriginal<typeof import('jspdf')>();
@@ -17,6 +21,7 @@ vi.mock('jspdf', async (importOriginal) => {
       }) as typeof this.text;
       this.save = ((name: string) => {
         captured.saved.push(name);
+        captured.pdf = this.output();
         return this;
       }) as unknown as typeof this.save;
     }
@@ -40,5 +45,7 @@ describe('downloadReport', () => {
     expect(captured.texts).toContain('Destination: Downtown');
     expect(captured.texts).toContain('Leaving at 5:00 PM on a weekday');
     for (const area of NEIGHBORHOODS) expect(captured.texts).toContain(area.name);
+    expect(captured.pdf.startsWith('%PDF-')).toBe(true);
+    expect(captured.pdf.trimEnd().endsWith('%%EOF')).toBe(true);
   });
 });
