@@ -76,8 +76,9 @@ any UI or docs you touch.
 ## Do not
 
 - Run `npm run deploy`, change GitHub settings or Pages config, or push to `main`.
-- Upgrade major dependencies without the owner's OK. `npm audit` reports advisories in
-  jsPDF and build tooling that need major upgrades; they are tracked, not ignored.
+- Upgrade major dependencies without the owner's OK. `npm audit` still reports one moderate
+  minimatch advisory through ESLint and typescript-eslint; it clears when they accept
+  minimatch 11. Tracked, not ignored.
 - Commit `.env` files, keys or tokens.
 
 ## Definition of done
