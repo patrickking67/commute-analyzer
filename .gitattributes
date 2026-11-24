@@ -8,3 +8,9 @@
 *.pdf binary
 *.woff binary
 *.woff2 binary
+
+# Keep GitHub's language bar and diffs focused on source.
+package-lock.json linguist-generated
+public/og-image.png linguist-generated
+public/llms.txt linguist-documentation
+llms.txt linguist-documentation
