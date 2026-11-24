@@ -23,6 +23,10 @@ All notable changes to this project are documented here. The format follows
   usage policy.
 - jsPDF loads only when you download a PDF; the main bundle went from 527 kB to 172 kB.
 - Vite `base` is now the absolute `/commute-analyzer/`.
+- Vite and Vitest configs are `.mts` files, which removes the config loader warning on build.
+- `package.json` has an accurate description, keywords and a Node engine (`>=20.19`).
+- `.gitattributes` marks the lockfile and the generated social image for GitHub's language stats.
+- Unit tests for distance, coordinate validation and hour formatting.
 
 ### Fixed
 
