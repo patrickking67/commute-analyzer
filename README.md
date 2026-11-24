@@ -27,7 +27,7 @@ typical traffic multiplier for each hour. They are not live traffic.
 Needs Node 20.19 or later (CI uses Node 24).
 
 ```bash
-git clone git@github.com:patrickking67/commute-analyzer.git
+git clone https://github.com/patrickking67/commute-analyzer.git
 cd commute-analyzer
 npm ci
 npm run dev
