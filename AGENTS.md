@@ -41,7 +41,7 @@ demand), Vitest, ESLint. Node 24 locally and in CI. npm with a committed lockfil
 | `src/data/offices.ts` | Preset workplaces with approximate coordinates |
 | `src/data/neighborhoods.ts` | The 15 neighborhoods with coordinates and facts |
 | `public/` | Favicon, Open Graph image (`og-image.svg` is the source for `og-image.png`), `llms.txt` |
-| `vite.config.ts` | `base: '/commute-analyzer/'` for GitHub Pages, dev and preview port 4107 |
+| `vite.config.mts` | `base: '/commute-analyzer/'` for GitHub Pages, dev and preview port 4107 |
 
 ## How the estimate works
 
