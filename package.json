@@ -15,14 +15,17 @@
   },
   "keywords": [
     "commute",
-    "travel-time",
+    "drive-time",
+    "los-angeles",
     "react",
     "vite",
-    "tailwind"
+    "tailwind",
+    "typescript",
+    "github-pages"
   ],
   "author": "Patrick King",
   "license": "MIT",
-  "description": "A React + Vite + Tailwind app that compares commute times across offices and time slots.",
+  "description": "Ranks 15 Los Angeles and Orange County neighborhoods by estimated drive time to a workplace at a chosen hour. Client-side React app, no API key.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/patrickking67/commute-analyzer.git"
@@ -52,5 +55,8 @@
     "typescript-eslint": "^8.73.0",
     "vite": "^8.3.8",
     "vitest": "^4.1.12"
+  },
+  "engines": {
+    "node": ">=20.19"
   }
 }
