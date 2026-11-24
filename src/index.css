@@ -1,6 +1,26 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-ink: #1f2933;
+  --color-muted: #52606d;
+  --color-paper: #f7f8fa;
+  --color-line: #d5dae1;
+  --color-route: #1d4ed8;
+  --color-route-dark: #1e3a8a;
+  --color-violet: #5b21b6;
+  --color-lane: #f2b705;
+  --color-bar: #64748b;
+  --font-sans: 'Overpass', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Tailwind 4 no longer applies the v3 default border color to bare borders. */
+@layer base {
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-line);
+  }
+}
 
 @layer base {
   html {
@@ -34,17 +54,19 @@
     @apply mb-1.5 block text-sm font-semibold text-ink;
   }
 
-  .btn {
+  .btn,
+  .btn-primary,
+  .btn-quiet {
     @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-base font-semibold;
     min-height: 44px;
   }
 
   .btn-primary {
-    @apply btn bg-route text-white hover:bg-route-dark disabled:cursor-not-allowed disabled:bg-bar;
+    @apply bg-route text-white hover:bg-route-dark disabled:cursor-not-allowed disabled:bg-bar;
   }
 
   .btn-quiet {
-    @apply btn border border-line bg-white text-ink hover:border-ink;
+    @apply border border-line bg-white text-ink hover:border-ink;
   }
 
   .sr-only-focusable:not(:focus) {

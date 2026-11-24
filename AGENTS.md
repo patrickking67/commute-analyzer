@@ -6,8 +6,8 @@ Live at https://patrickking67.github.io/commute-analyzer/.
 
 ## Stack
 
-React 18, TypeScript (strict), Vite 6, Tailwind CSS 3, lucide-react icons, jsPDF (loaded on
-demand), Vitest, ESLint. Node 24 locally and in CI. npm with a committed lockfile.
+React 19, TypeScript 6 (strict), Vite 8, Tailwind CSS 4, lucide-react icons, jsPDF (loaded on
+demand), Vitest, ESLint. Node 24 locally and in CI (22.12 or later supported). npm with a committed lockfile.
 
 ## Commands
 
@@ -64,7 +64,7 @@ any UI or docs you touch.
 
 - TypeScript strict, function components and hooks. Put logic in `src/lib` as pure functions
   with tests; components stay thin.
-- Tailwind utilities with the tokens in `tailwind.config.js` (`ink`, `muted`, `paper`, `line`,
+- Tailwind utilities with the tokens in the `@theme` block of `src/index.css` (`ink`, `muted`, `paper`, `line`,
   `route`, `violet`, `lane`, `bar`). Shared classes (`field`, `label`, `btn-*`) live in
   `src/index.css`.
 - Accessibility floor: labelled native controls, visible focus, 44 px targets, WCAG AA
