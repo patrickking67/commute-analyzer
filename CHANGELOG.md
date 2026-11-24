@@ -18,6 +18,11 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- Tailwind CSS 3 to 4. Design tokens now live in an `@theme` block in `src/index.css`, the
+  `@tailwindcss/vite` plugin replaces PostCSS and autoprefixer, and `tailwind.config.js` and
+  `postcss.config.js` are gone (three dev dependencies removed, one added).
+- Vitest 4 to 5 and TypeScript 5.7 to 6.0. Node 22.12 or later is now required to run the checks.
+  TypeScript 7 is skipped for now because typescript-eslint does not support it yet.
 - Results update as you change inputs instead of after a fake delay.
 - Address search runs when you press Find instead of on every keystroke, per the Nominatim
   usage policy.
